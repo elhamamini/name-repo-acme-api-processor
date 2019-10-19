@@ -2,84 +2,6 @@
   <head> </head>
   <body>
     <script>
-      //   const returnProduct = () => {
-      //     return window
-      //       .fetch("https://acme-users-api-rev.herokuapp.com/api/products")
-      //       .then(data => data.json())
-      //       .then(data => {
-      //         data.filter(obj => {
-      //           if (5 < obj.suggestedPrice < 15) {
-      //             return obj;
-      //           }
-      //         });
-      //       });
-      //   };
-      //   console.log(returnProduct());
-      //   const groupedCompenisByLetter = () => {
-      //     return window
-      //       .fetch("https://acme-users-api-rev.herokuapp.com/api/companies")
-      //       .then(data => data.json())
-      //       .then(data => {
-      //         data.reduce((accu, obj) => {
-      //           let firstLetter = obj.name.slice(0, 1);
-      //           if (accu[firstLetter] === undefined) {
-      //             accu[firstLetter] = [obj.name];
-      //           } else {
-      //             accu[firstLetter].push(obj.name);
-      //           }
-
-      //           return accu;
-      //         }, {});
-      //       });
-      //   };
-      //   console.log(groupedCompenisByLetter());
-      //   const groupedCompenisByState = () => {
-      //     return window
-      //       .fetch("https://acme-users-api-rev.herokuapp.com/api/companies")
-      //       .then(data => data.json())
-      //       .then(data => {
-      //         data.reduce((accu, obj) => {
-      //           if (accu[obj.state] === undefined) {
-      //             accu[obj.state] = [obj.state];
-      //           } else {
-      //             accu[obj.state].push(obj.state);
-      //           }
-
-      //           return accu;
-      //         }, {});
-      //       });
-      //   };
-      //   console.log(groupedCompenisByState());
-      //   const offerings = new Promise((res, rej) => {
-      //     return window
-      //       .fetch("https://acme-users-api-rev.herokuapp.com/api/offerings")
-      //       .then(data => data.json())
-      //       .then(data => {
-      //         res(data);
-      //         return data;
-      //       });
-      //   });
-      //   console.log(offerings);
-      //   const companies = fetch("https://acme-users-api-rev.herokuapp.com/api/companies")
-      //       .then(response => response.json())
-      //       .then(data => {
-      //         // res(data);
-      //         console.log(data);
-
-      //   });
-      //   console.log(companies);
-      //   const nOrMoreOfferings = (companies, offerings, n) => {
-      //     const objO = offerings.value.reduce((accu, obj) => {
-      //       if (accu[obj.companyId] === undefined) {
-      //         accu[obj.companyId] = 1;
-      //       } else {
-      //         accu[obj.companyId] += 1;
-      //       }
-      //       return accu;
-      //     }, {});
-      //     console.log(objO);
-      //   };
-      //   nOrMoreOfferings(companies, offerings, 3);
       const productsInPriceRange = (products, range) => {
         return products.filter(p => {
           if (range.min <= p.suggestedPrice && p.suggestedPrice <= range.max) {
@@ -131,59 +53,49 @@
         });
 
       const processedOfferings = ({ companies, products, offerings }) => {
-        console.log(Object.keys(offerings));
+        return offerings.reduce((accu, obj1) => {
+          let obj = {};
 
-        // offerings.reduce((accu, obj1) => {
-        //   accu.push(obj1);
-        //     console.log(obj);
-        //     let obj = {};
-        //     const company = myObj.companies.filter(obj2 => {
-        //       if (obj1.companyId === obj2.id) {
-        //         return true;
-        //       } else {
-        //         return false;
-        //       }
-        //     });
+          const company = companies.filter(obj2 => {
+            if (obj1.companyId === obj2.id) {
+              return true;
+            } else {
+              return false;
+            }
+          });
 
-        //     obj[obj1] = [company];
+          obj[obj1] = [company];
 
-        //     const product = myObj.products.filter(obj3 => {
-        //       if (obj1.productId === obj3.id) {
-        //         return true;
-        //       } else {
-        //         return false;
-        //       }
-        //     });
-        //     obj[obj1].concat(product);
-        //     accu.push(obj);
-        //   return accu;
-        // }, []);
+          const product = products.filter(obj3 => {
+            if (obj1.productId === obj3.id) {
+              return true;
+            } else {
+              return false;
+            }
+          });
+          obj[obj1].concat(product);
+          accu.push(obj);
+          return accu;
+        }, []);
       };
 
-      const p1 = fetch(
-        "https://acme-users-api-rev.herokuapp.com/api/companies"
-      );
-      const p2 = fetch("https://acme-users-api-rev.herokuapp.com/api/products");
-      const p3 = fetch(
-        "https://acme-users-api-rev.herokuapp.com/api/offerings"
-      );
-      Promise.all([p1, p2, p3])
-        .then(responses => {
-          return responses.map(p => {
-            return p.json();
-          });
-        })
-        .then(datas => {
-          processedOfferings({
-            companys: datas[0],
-            products: datas[1],
-            offerings: datas[2]
-          });
+      Promise.all([
+        fetch("https://acme-users-api-rev.herokuapp.com/api/companies"),
+        fetch("https://acme-users-api-rev.herokuapp.com/api/products"),
+        fetch("https://acme-users-api-rev.herokuapp.com/api/offerings")
+      ]).then(responses => {
+        return Promise.all(responses.map(p => p.json())).then(datas => {
+          console.log(
+            processedOfferings({
+              companies: datas[0],
+              products: datas[1],
+              offerings: datas[2]
+            })
+          );
         });
+      });
 
       const threeOrMoreOfferings = (companies, offerings, n) => {
-        console.log(Array.isArray(companies));
-        console.log(offerings);
         let arr = [];
         let myObj = offerings.reduce((accu, obj) => {
           if (accu[obj.companyId] === undefined) {
@@ -196,6 +108,7 @@
         Object.entries(myObj).forEach(([key, value]) => {
           if (value >= 3) {
             for (let i = 0; i < companies.length; i++) {
+              //   console.log(companies[i].id);
               if (companies[i].id === key) {
                 arr.push(companies[i]);
               }
@@ -206,18 +119,44 @@
       };
 
       Promise.all([
-        fetch("https://acme-users-api-rev.herokuapp.com/api/offerings"),
-        fetch("https://acme-users-api-rev.herokuapp.com/api/companies")
-      ])
-        .then(responses => {
-          return responses.map(r => {
-            return r.json();
-          });
-        })
-        .then(datas => {
-          console.log(Array.isArray(datas[0]));
+        fetch("https://acme-users-api-rev.herokuapp.com/api/companies"),
+        fetch("https://acme-users-api-rev.herokuapp.com/api/offerings")
+      ]).then(responses => {
+        return Promise.all(responses.map(r => r.json())).then(datas => {
           console.log(threeOrMoreOfferings(datas[0], datas[1], 3));
         });
+      });
+      const processedProducts = ({ products, offerings }) => {
+        return products.filter(obj => {
+          const arr = offerings.filter(obj1 => {
+            if (obj1.productId === obj.id) {
+              return true;
+            } else {
+              return false;
+            }
+          });
+          let sum = 0;
+          arr.forEach(obj => {
+            sum += obj.price;
+          });
+
+          if (obj.suggestedPrice === Math.ceil(sum / arr.length)) {
+            return true;
+          } else {
+            return false;
+          }
+        });
+      };
+      Promise.all([
+        fetch("https://acme-users-api-rev.herokuapp.com/api/products"),
+        fetch("https://acme-users-api-rev.herokuapp.com/api/offerings")
+      ]).then(responses => {
+        return Promise.all(responses.map(r => r.json())).then(datas => {
+          console.log(
+            processedProducts({ products: datas[0], offerings: datas[1] })
+          );
+        });
+      });
     </script>
   </body>
 </html>
